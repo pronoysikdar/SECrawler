@@ -1,3 +1,6 @@
+'use server';
+import {parse} from 'node-html-parser';
+
 /**
  * Represents the scraped content of a SEC filing.
  */
@@ -15,9 +18,23 @@ export interface SecFiling {
  * @returns A promise that resolves to a SecFiling object containing the text content.
  */
 export async function getSecFilingContent(url: string): Promise<SecFiling> {
-  // TODO: Implement this by calling an API.
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const html = await response.text();
+    const root = parse(html);
+    const textContent = root.text;
 
-  return {
-    textContent: 'This is a sample SEC filing content.',
-  };
+    return {
+      textContent: textContent,
+    };
+  } catch (error: any) {
+    console.error("Failed to scrape SEC filing content:", error);
+    return {
+      textContent: `Error: Could not retrieve content from URL. ${error.message}`,
+    };
+  }
 }
+
